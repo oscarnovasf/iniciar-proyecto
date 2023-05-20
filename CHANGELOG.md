@@ -1,0 +1,67 @@
+# Histórico de cambios
+---
+Todos los cambios notables de este proyecto se documentarán en este archivo.
+
+* ## [Sin versión]
+  > Ver TODO.md
+
+* ## [v2.0.0] - 2023-05-19
+  > Nuevas funcionalidades.
+
+  * #### Añadido:
+    - Funcionalidad para crear los proyectos borrando la información de
+      copyright (para usar en proyectos anónimos o de otras agencias).
+    - Fichero de configuración .env para poder publicar el script protegiendo
+      datos confidenciales.
+    - Añadidos nuevos tipos de módulos que se pueden crear: API Rest y Básico.
+    - Añadida funcionalidad para crear proyectos Drupal completos.
+    - Añadida funcionalidad para crear automáticamente el repositorio en GitLab,
+      GitHub o Gogs.
+    - Añadida funcionalidad para descargar las plantillas desde el repositorio
+      oficial en lugar de usar una ruta local.
+    - Añadida configuración para conexiones SSH con clave privada.
+    - Añadida funcionalidad para poder elegir si se desean descargar las
+      configuraciones de .vscode.
+
+  * #### Cambios:
+    - Refactor completo del script para poder generar módulos de importación y
+      otras opciones.
+    - El primer commit sólo incluye los archivos README.md, .gitignore y la
+      carpeta .vscode en la rama main y todo lo demás se incluye en la rama
+      develop.
+    - La plantilla para el archivo sftp.json se ha simplificado por lo que se ha
+      adaptado el script a su nueva estructura.
+    - Ahora se pide el repo remoto antes de preguntar si se quiere realizar el
+      commit inicial.
+
+  * #### Errores:
+    - Problema al seleccionar la opción "Otro" que hacía lo mismo que cuando se
+      seleccionaba "Script".
+
+  * #### Eliminado:
+    - Eliminada la opción de activar standard-version ya que no la uso nunca.
+
+---
+* ## [v1.0.2] - 2021-11-26
+  > Nuevas funcionalidades (no publicadas).
+
+  * #### Añadido:
+    - Descarga de nuevos snippets.
+    - Control de tiempo de ejecución del script.
+
+  * #### Cambios:
+    - Apertura del proyecto en VSCode opcional.
+    - Al solicitar los datos de git ahora muestra los valores actuales.
+    - Ahora la rama principal para git es "main".
+    - Nombre en español para el script.
+
+---
+* ## [v1.0.1] - 2021-10-05
+  > Nuevas funcionalidades (no publicadas).
+
+  * #### Añadido:
+    - Configuración para ESLint.
+
+---
+* ## [v1.0.0] - 2021-09-14
+  > Versión inicial (no publicada)

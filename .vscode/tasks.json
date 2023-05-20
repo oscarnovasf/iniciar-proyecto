@@ -1,0 +1,550 @@
+{
+  // Ver https://go.microsoft.com/fwlink/?LinkId=733558
+  // para más documentación sobre el formato de este archivo.
+  "version": "2.0.0",
+  "tasks": [
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR LOS SNIPPETS.
+     **************************************************************************/
+
+    {
+      "label": "hidden: Actualizar snippets (Clases)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_clases.code-snippets -o .vscode/drupal_clases.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar snippets (Formularios)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_form.code-snippets -o .vscode/drupal_form.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar snippets (JavaScript)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_js.code-snippets -o .vscode/drupal_js.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar snippets (Routing)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_routing.code-snippets -o .vscode/drupal_routing.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar snippets (Uses)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_uses.code-snippets -o .vscode/drupal_uses.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar snippets (Utils)",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/utils.code-snippets -o .vscode/utils.code-snippets",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "snippets",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "- Actualizar snippets",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "hidden: Actualizar snippets (Clases)",
+        "hidden: Actualizar snippets (Formularios)",
+        "hidden: Actualizar snippets (JavaScript)",
+        "hidden: Actualizar snippets (Routing)",
+        "hidden: Actualizar snippets (Uses)",
+        "hidden: Actualizar snippets (Utils)"
+      ],
+      "icon": { "id": "file-code", "color": "terminal.ansiBlue"}
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR LA CONFIGURACIÓN.
+     **************************************************************************/
+
+    {
+      "label": "hidden: Actualizar cspell.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/cspell.json -o .vscode/cspell.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar extensions.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/extensions.json -o .vscode/extensions.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar launch.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/launch.json -o .vscode/launch.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar settings.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/settings.json -o .vscode/settings.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "Actualizar tasks.json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/tasks.json -o .vscode/tasks.json",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    /* Tarea duplicada para poder usarla en Activitus Bar */
+    {
+      "label": "hidden_actualizar_tasks_json",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/tasks.json -o .vscode/tasks.json",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar .editorconfig",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.editorconfig -o .editorconfig",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "settings",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "- Actualizar configuraciones",
+      "type": "shell",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "hidden: Actualizar cspell.json",
+        "hidden: Actualizar extensions.json",
+        "hidden: Actualizar launch.json",
+        "hidden: Actualizar settings.json",
+        "Actualizar tasks.json",
+        "hidden: Actualizar .editorconfig"
+      ],
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR DOCUMENTACIÓN.
+     **************************************************************************/
+
+    {
+      "label": "hidden: Actualizar phpcs.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpcs.xml -o phpcs.xml",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "files", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar phpmd.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpmd.xml -o phpmd.xml",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "files", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "hidden: Actualizar phpdox.xml",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpdox.xml -o phpdox.xml && grep -l module_template phpdox.xml|xargs sed -i -e \"s/module_template/${workspaceFolderBasename}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "files", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "- Actualizar documentación",
+      "type": "shell",
+      "osx": {
+        "command": "find ./ -name '*.*-e' -type f -delete",
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never",
+      },
+      "dependsOn": [
+        "hidden: Actualizar phpcs.xml",
+        "hidden: Actualizar phpdox.xml",
+        "hidden: Actualizar phpmd.xml"
+      ],
+      "icon": { "id": "files", "color": "terminal.ansiBlue"}
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA ACTUALIZAR / DESCARGAR LIBRERÍAS.
+     **************************************************************************/
+
+    {
+      "label": "-- Element: MultiValue.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino_element} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/Element/MultiValue.php -o ${input:destino_element}/MultiValue.php && grep -l module_template ${input:destino_element}/MultiValue.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: CalendarLinkFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/CalendarLinkFunctions.php -o ${input:destino}/CalendarLinkFunctions.php && grep -l module_template ${input:destino}/CalendarLinkFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: DateTimeFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/DateTimeFunctions.php -o ${input:destino}/DateTimeFunctions.php && grep -l module_template ${input:destino}/DateTimeFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: DrupalLog.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/DrupalLog.php -o ${input:destino}/DrupalLog.php && grep -l module_template ${input:destino}/DrupalLog.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: FileFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php -o ${input:destino}/FileFunctions.php && grep -l module_template ${input:destino}/FileFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: FtpFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FtpFunctions.php -o ${input:destino}/FtpFunctions.php && grep -l module_template ${input:destino}/FtpFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: Mailing.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino_mailing} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/Mailing.php -o ${input:destino_mailing}/Mailing.php && grep -l module_template ${input:destino_mailing}/Mailing.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "dependsOn": [
+        "-- Librería: ResponseFunctions.php",
+      ],
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: MarkdownParser.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php -o ${input:destino}/MarkdownParser.php && grep -l module_template ${input:destino}/MarkdownParser.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: ParamsFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ParamsFunctions.php -o ${input:destino}/ParamsFunctions.php && grep -l module_template ${input:destino}/ParamsFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: ResponseFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php -o ${input:destino}/ResponseFunctions.php && grep -l module_template ${input:destino}/ResponseFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: StringFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php -o ${input:destino}/StringFunctions.php && grep -l module_template ${input:destino}/StringFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    {
+      "label": "-- Librería: ValidateFunctions.php",
+      "type": "shell",
+      "command": "mkdir -p ${input:destino} && curl https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php -o ${input:destino}/ValidateFunctions.php && grep -l module_template ${input:destino}/ValidateFunctions.php|xargs sed -i -e \"s/module_template/${input:namespace}/g\"",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "librerias",
+        "close": true,
+        "clear": true
+      },
+      "icon": { "id": "cloud-download", "color": "terminal.ansiBlue"}
+    },
+
+    /* *************************************************************************
+     * TAREAS PARA CORREGIR FALLOS EN MAC.
+     **************************************************************************/
+
+    {
+      "label": "Reparar archivos duplicados *.*.e",
+      "type": "shell",
+      "command": "find ./ -name '*.*-e' -type f -delete",
+      "presentation": {
+        "reveal": "silent",
+        "group": "utils",
+        "clear": true,
+        "close": true,
+      },
+      "icon": { "id": "settings-gear", "color": "terminal.ansiBlue"}
+    },
+
+    /* *************************************************************************
+     * OTRO TIPO DE TAREAS.
+     **************************************************************************/
+
+    {
+      "label": "Check Composer",
+      "type": "composer",
+      "command": "check-platform-reqs",
+      "args": []
+    },
+
+    /* *************************************************************************
+     * TAREAS EN DESUSO PERO QUE PUEDEN SER NECESARIAS.
+     **************************************************************************/
+
+    {
+      "label": "hidden: Actualizar .gitignore",
+      "type": "shell",
+      "command": "curl https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "documentacion",
+        "close": true,
+        "clear": true
+      },
+    },
+
+  ],
+
+  /* ***************************************************************************
+   * VARIABLES USADAS EN LAS TAREAS ANTERIORES.
+   ****************************************************************************/
+  "inputs": [
+    {
+      "id": "destino",
+      "description": "Destino:",
+      "type": "promptString",
+      "default": "src/lib/general"
+    },
+    {
+      "id": "destino_element",
+      "description": "Destino (Element):",
+      "type": "promptString",
+      "default": "src/Element"
+    },
+    {
+      "id": "destino_mailing",
+      "description": "Destino (Mailing):",
+      "type": "promptString",
+      "default": "src/lib"
+    },
+    {
+      "id": "namespace",
+      "description": "NameSpace:",
+      "type": "promptString",
+      "default": "${workspaceFolderBasename}"
+    }
+  ]
+
+}

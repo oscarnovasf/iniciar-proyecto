@@ -1,0 +1,14 @@
+# Excluir la configuración de vscode excepto el archivo sftp.json
+.vscode/*
+!.vscode/tasks.json
+
+# Archivos de desarrollo NPM.
+node_modules
+
+# Archivos propios de VSCode.
+debug.log
+
+# Archivos de documentación (phpdox).
+.tmp-doc
+documentation
+.env
