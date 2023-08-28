@@ -5,6 +5,22 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
 * ## [Sin versión]
   > Ver TODO.md
 
+---
+* ## [v2.1.0] - 2023-08-28
+  > Nuevas funcionalidades.
+
+  * #### Añadido:
+    - Se establece que las fusiones con la rama main serán con squash.
+    - Nuevo sistema de clonado de repositorios. Esto implica que puede estar
+      activo el "git" antes de ejecutar el clonado.
+
+  * #### Cambios:
+    - Se ha cambiado la forma de copiar los archivos "locales" de cp a rsync.
+    - El script ya no elimina la carpeta .git tras el clonado del repositorio,
+      con los cambios introducidos ya no es necesario.
+    - Si git ya ha sido inicializado no se pregunta si se quiere iniciar.
+
+---
 * ## [v2.0.0] - 2023-05-19
   > Nuevas funcionalidades.
 

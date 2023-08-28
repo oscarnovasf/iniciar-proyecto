@@ -64,6 +64,37 @@ function load_env() {
   fi
 }
 
+# Comprueba todas las dependencias necesarias.
+function check_dependencies() {
+  # Degit
+  package_name='degit'
+  if [[ "$(npm list -g $package_name)" =~ "empty" ]]; then
+    clear
+    linea
+    echo -e " ${RED}No se ha encontrado la herramienta DEGIT.${RESET}"
+    linea
+    exit 2
+  fi
+
+  # Rsync.
+  if ! [ -x "$(command -v rsync)" ]; then
+    clear
+    linea
+    echo -e " ${RED}No se ha encontrado la herramienta RSYNC.${RESET}"
+    linea
+    exit 2
+  fi
+
+  # CURL.
+  if ! [ -x "$(command -v curl)" ]; then
+    clear
+    linea
+    echo -e " ${RED}No se ha encontrado la herramienta RSYNC.${RESET}"
+    linea
+    exit 2
+  fi
+}
+
 # Muestra la cabecera de algunas respuestas del script.
 function show_header() {
   linea
@@ -296,7 +327,6 @@ function eliminar_archivos_innecesarios() {
   # Elimino carpetas innecesarias.
   rm -r .tmp-doc || echo "No se ha podido eliminar ./.tmp-doc"
   rm -r documentation || echo "No se ha podido eliminar ./documentation"
-  rm -rf .git || echo "No se ha podido eliminar ./.git"
   rm -rf .vscode || echo "No se ha podido eliminar ./.vscode"
   rm -rf .gitlab || echo "No se ha podido eliminar ./.gitlab"
   rm -rf .github || echo "No se ha podido eliminar ./.github"
@@ -581,63 +611,67 @@ function git_remoto_menu() {
 
 # Iniciar git.
 function init_git() {
-  clear
-  read -r -p "¿Deseas iniciar git [y]?: " GIT_INIT
-  GIT_INIT=${GIT_INIT:-y}
+  # Si ya existe la carpeta .git no hago nada.
+  if [ ! -d .git ]; then
+    clear
+    read -r -p "¿Deseas iniciar git [y]?: " GIT_INIT
+    GIT_INIT=${GIT_INIT:-y}
 
-  if [ "$GIT_INIT" == "y" ]; then
-    # Me aseguro que la rama principal sea la main.
-    git init --initial-branch=main
-    git config core.precomposeunicode false
-    echo ""
+    if [ "$GIT_INIT" == "y" ]; then
+      # Me aseguro que la rama principal sea la main.
+      git init --initial-branch=main
+      git config core.precomposeunicode false
+      git config branch.main.mergeOptions "--squash"
+      echo ""
 
-    read -r -p "Indica el usuario ($(git config user.name)): " GIT_USER
-    GIT_USER=${GIT_USER:-$(git config user.name)}
+      read -r -p "Indica el usuario ($(git config user.name)): " GIT_USER
+      GIT_USER=${GIT_USER:-$(git config user.name)}
 
-    read -r -p "Indica el correo ($(git config user.email)): " GIT_MAIL
-    GIT_MAIL=${GIT_MAIL:-$(git config user.email)}
+      read -r -p "Indica el correo ($(git config user.email)): " GIT_MAIL
+      GIT_MAIL=${GIT_MAIL:-$(git config user.email)}
 
-    git config user.name "${GIT_USER}"
-    git config user.email "${GIT_MAIL}"
+      git config user.name "${GIT_USER}"
+      git config user.email "${GIT_MAIL}"
 
-    # Solicito URL del repositorio remoto.
-    read -r -p "¿Deseas inicializar el repositorio remoto [y]?: " GIT_REMOTE
-    GIT_REMOTE=${GIT_REMOTE:-y}
+      # Solicito URL del repositorio remoto.
+      read -r -p "¿Deseas inicializar el repositorio remoto [y]?: " GIT_REMOTE
+      GIT_REMOTE=${GIT_REMOTE:-y}
 
-    if [ "$GIT_REMOTE" == "y" ]; then
-      git_remoto_menu
-    fi
+      if [ "$GIT_REMOTE" == "y" ]; then
+        git_remoto_menu
+      fi
 
-    # Pregunto si quiero realizar el primer commit.
-    read -r -p "¿Deseas realizar el primer commit [y]?: " GIT_COMMIT
-    GIT_COMMIT=${GIT_COMMIT:-y}
+      # Pregunto si quiero realizar el primer commit.
+      read -r -p "¿Deseas realizar el primer commit [y]?: " GIT_COMMIT
+      GIT_COMMIT=${GIT_COMMIT:-y}
 
-    if [ "$GIT_COMMIT" == "y" ]; then
+      if [ "$GIT_COMMIT" == "y" ]; then
 
-      # Commit inicial (sólo README.md, .gitignore y .vscode).
-      git add README.md .gitignore .vscode
-      git commit -m "init: Inicio del proyecto"
+        # Commit inicial (sólo README.md, .gitignore y .vscode).
+        git add README.md .gitignore .vscode
+        git commit -m "init: Inicio del proyecto"
 
-      # Creo rama develop y realizo commit completo.
-      git switch -c develop
-      git add .
-      git commit -m "init: Inicio desarrollo"
+        # Creo rama develop y realizo commit completo.
+        git switch -c develop
+        git add .
+        git commit -m "init: Inicio desarrollo"
 
-    else
-      # Creo la rama develop y me cambio a ella.
-      git switch -c develop
-    fi
+      else
+        # Creo la rama develop y me cambio a ella.
+        git switch -c develop
+      fi
 
-    # Envío todos los cambios al repositorio remoto.
-    if [ "$GIT_REMOTE" == "y" ]; then
-      # Me cambio a main antes de enviar las ramas.
-      git switch main
+      # Envío todos los cambios al repositorio remoto.
+      if [ "$GIT_REMOTE" == "y" ]; then
+        # Me cambio a main antes de enviar las ramas.
+        git switch main
 
-      # Enviamos todas las ramas.
-      git push -u origin --all
+        # Enviamos todas las ramas.
+        git push -u origin --all
 
-      # Me cambio a develop de nuevo.
-      git switch develop
+        # Me cambio a develop de nuevo.
+        git switch develop
+      fi
     fi
   fi
 }
@@ -688,9 +722,9 @@ function create_module() {
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    git clone "${MODULE_TEMPLATE_GIT}" .
+    npx degit "${MODULE_TEMPLATE_GIT}" --force
   else
-    cp -r "$MODULE_TEMPLATE_DIR" .
+    rsync -av --progress --stats "$MODULE_TEMPLATE_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -758,9 +792,9 @@ function create_module_bas() {
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    git clone "${MODULE_TEMPLATE_BAS_GIT}" .
+    npx degit "${MODULE_TEMPLATE_BAS_GIT}" --force
   else
-    cp -r "$MODULE_TEMPLATE_BAS_DIR" .
+    rsync -av --progress --stats "$MODULE_TEMPLATE_BAS_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -820,9 +854,9 @@ function create_module_import() {
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    git clone "${MODULE_TEMPLATE_IMPORT_GIT}" .
+    npx degit "${MODULE_TEMPLATE_IMPORT_GIT}" --force
   else
-    cp -r "$MODULE_TEMPLATE_IMPORT_DIR" .
+    rsync -av --progress --stats "$MODULE_TEMPLATE_IMPORT_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -883,9 +917,9 @@ function create_module_rest_api() {
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    git clone "${MODULE_TEMPLATE_API_REST_DIR}" .
+    npx degit "${MODULE_TEMPLATE_API_REST_DIR}" --force
   else
-    cp -r "$MODULE_TEMPLATE_API_REST_DIR" .
+    rsync -av --progress --stats "$MODULE_TEMPLATE_API_REST_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -946,9 +980,9 @@ function create_drupal() {
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    git clone "${DRUPAL_TEMPLATE_GIT}" .
+    npx degit "${DRUPAL_TEMPLATE_GIT}" --force
   else
-    cp -r "$DRUPAL_TEMPLATE_DIR" .
+    rsync -av --progress --stats "$DRUPAL_TEMPLATE_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -1008,9 +1042,9 @@ function create_script() {
 
   # Copio los archivos del módulo.
   if [ -n "$SCRIPT_TEMPLATE_GIT" ]; then
-    git clone "${SCRIPT_TEMPLATE_GIT}" .
+    npx degit "${SCRIPT_TEMPLATE_GIT}" --force
   else
-    cp -r "$SCRIPT_TEMPLATE_DIR" .
+    rsync -av --progress --stats "$SCRIPT_TEMPLATE_DIR" . --exclude .git --exclude .vscode
   fi
 
   # Elimino archivos y carpetas innecesarias.
@@ -1189,6 +1223,9 @@ load_env
 
 # Compruebo parámetros del script.
 check_help_param "$@"
+
+# Compruebo que están instaladas todas las herramientas necesarias.
+check_dependencies
 
 
 ################################################################################

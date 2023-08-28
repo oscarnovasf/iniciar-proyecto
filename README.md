@@ -12,24 +12,22 @@ Script para iniciar un proyecto
 
 ## Requisitos
 - GIT instalado en nuestra máquina.
+- Node.js instalado en nuestra máquina (^18).
+- Paquete [Degit](https://www.npmjs.com/package/degit) instalado globalmente.
+- RSYNC.
+- CURL.
 - Creación previa del archivo .env a partir de .env.sample.
+- Tener acceso a los repositorios remotos que se usen como base para
+  generar el nuevo proyecto (sólo si se desea usar el repositorio remoto en
+  lugar de una copia local del mismo).
 
 ## Información
 El objetivo de este script es inicializar, dentro de una carpeta en nuestro
-disco duro, un proyecto (módulo, drupal completo, script...) con todas las
+disco duro, un proyecto (módulo, Drupal completo, script...) con todas las
 configuraciones necesarias para nuestro VSCode.
 
 El script también se encargará de inicializar el repositorio remoto y enviar
 el **commit** inicial (si así se desea).
-
-Las configuraciones aportadas por este script hacen uso de todas las
-herramientas que se mencionan en nuestro "***Manual del Desarrollador***".
-
-## Ejecución
-- Crear una carpeta en el disco local con el nombre máquina que queremos dar al
-  proyecto.
-- Ejecutar el script (ver Configuración y Requisitos).
-- Seguir los pasos indicados en el script.
 
 ## Configuración
 - Tras descargar este proyecto es recomendable crear un alias al script para poder
@@ -40,13 +38,19 @@ herramientas que se mencionan en nuestro "***Manual del Desarrollador***".
   un fork y usarlos tu mismo. Inicialmente no funcionarán ya que no se dispone
   de los permisos suficientes para realizar el clonado.
 
+## Ejecución
+- Crear una carpeta en el disco local con el nombre máquina que queremos dar al
+  proyecto.
+- Ejecutar el script (ver Configuración y Requisitos).
+- Seguir los pasos indicados en el script.
+
 ---
 ⌨️ con ❤️ por [Óscar Novás][mi-web] 😊
 
 [mi-web]: https://oscarnovas.com "for developers"
 
-[version]: v2.0.0
-[version-badge]: https://img.shields.io/badge/Versión-2.0.0-blue.svg
+[version]: v2.1.0
+[version-badge]: https://img.shields.io/badge/Versión-2.1.0-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"
