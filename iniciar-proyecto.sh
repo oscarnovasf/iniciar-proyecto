@@ -134,47 +134,11 @@ function show_usage() {
   linea
 }
 
-# Abre la carpeta actual en VSCode.
-function open_vscode() {
-  echo " "
-  read -r -p "¿Deseas abrir el proyecto en VSCode [n]?: " ABRIR_VSCODE
-  ABRIR_VSCODE=${ABRIR_VSCODE:-n}
-
-  if [ "$ABRIR_VSCODE" == "y" ]; then
-    if command -v code &> /dev/null
-    then
-      code .
-    else
-      echo ""
-      echo -e " ${RED}No se puede abrir el proyecto: No se encuentra VSCode.${RESET}"
-      sleep 5s
-    fi
-  fi
-}
-
 # Comprueba si se ha pasado el parámetro para mostrar la ayuda.
 function check_help_param() {
   if [[ ( $* == "--help") || $* == "-h" ]]; then
     show_usage
     exit 0
-  fi
-}
-
-# Obtiene el directorio de instalación.
-function install_dir() {
-  read -r -p "¿Crear proyecto en el directorio actual (${DESTINATION_DIR_NAME})? [y]: " INSTALL_HERE
-  INSTALL_HERE=${INSTALL_HERE:-y}
-  if [ "$INSTALL_HERE" != "y" ]; then
-    echo ''
-    read -r -p "Directorio de destino del proyecto (ej. D:\WEB\Gloudify\Plantillas) [./]: " DESTINATION_DIR_NAME
-    DESTINATION_DIR_NAME=${DESTINATION_DIR_NAME:-./}
-
-    # FIXME Elimino ":" del nombre del directorio y cambio la dirección de las barras.
-    DESTINATION_DIR_NAME="$(echo /"$DESTINATION_DIR_NAME"/"$CUSTOM_MACHINE_NAME"/ | sed -e 's/://g' | sed -e 's/\\/\//g')"
-
-    # Creo el directorio si no existe.
-    mkdir -p "$DESTINATION_DIR_NAME"
-    cd "$DESTINATION_DIR_NAME" || exit 1
   fi
 }
 
@@ -188,14 +152,20 @@ function download_github_files_vscode() {
 
   # Descargo los archivos de .vscode (snippets).
   mkdir -p .vscode
-  if [ "$PROJECT_TYPE" != "other" ] && [ "$PROJECT_TYPE" != "script" ]; then
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_clases.code-snippets -o .vscode/drupal_clases.code-snippets
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_form.code-snippets -o .vscode/drupal_form.code-snippets
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_js.code-snippets -o .vscode/drupal_js.code-snippets
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_routing.code-snippets -o .vscode/drupal_routing.code-snippets
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_uses.code-snippets -o .vscode/drupal_uses.code-snippets
-    curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/utils.code-snippets -o .vscode/utils.code-snippets
-  fi
+  case "$PROJECT_TYPE" in
+
+    "other"|"script")
+      ;;
+
+    *)
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_clases.code-snippets -o .vscode/drupal_clases.code-snippets
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_form.code-snippets -o .vscode/drupal_form.code-snippets
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_js.code-snippets -o .vscode/drupal_js.code-snippets
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_routing.code-snippets -o .vscode/drupal_routing.code-snippets
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/drupal_uses.code-snippets -o .vscode/drupal_uses.code-snippets
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/utils.code-snippets -o .vscode/utils.code-snippets
+      ;;
+  esac
 
   # Descargo el diccionario de cspell.
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/cspell.json -o .vscode/cspell.json
@@ -215,13 +185,48 @@ function download_github_files_no_vscode() {
   linea
   echo " "
 
-  # Descargo otros componentes de la documentación.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpcs.xml -o phpcs.xml
-  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpmd.xml -o phpmd.xml
+  case "$PROJECT_TYPE" in
 
-  # Descargo archivos de git.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitattributes -o .gitattributes
-  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore
+    "drupal")
+      # Descargo otros componentes de la documentación.
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpcs.xml -o phpcs.xml
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpmd.xml -o phpmd.xml
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpstan.neon -o phpstan.neon
+      ;;
+
+    "module"|"module_import"|"module_bas"|"module_rest_api")
+      # Descargo las librerías necesarias.
+      mkdir -p src/lib/general
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php > src/lib/general/MarkdownParser.php
+
+      # Descargo las librerías propias de este tipo de proyecto.
+      if [ "$PROJECT_TYPE" == "module_import" ]; then
+        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php > src/lib/general/FileFunctions.php
+        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php > src/lib/general/ResponseFunctions.php
+        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php > src/lib/general/ValidateFunctions.php
+        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php > src/lib/general/StringFunctions.php
+      fi
+
+      # Descargo los archivos de documentación y genero carpetas temporal y documentación.
+      read -r -p "¿Descargamos también los archivos para generar documentación? [y]: " DOWNLOAD_DOC
+      DOWNLOAD_DOC=${DOWNLOAD_DOC:-y}
+      if [ "$DOWNLOAD_DOC" == "y" ]; then
+        curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpdox.xml > phpdox.xml
+        mkdir -p .tmp-doc
+        mkdir -p documentation
+      fi
+      ;;
+
+    *)
+      # Descargo archivos de git.
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitattributes -o .gitattributes
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore
+      ;;
+  esac
+
+  # Descargo el archivo README.md y README.
+  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README.md -o README.md
+  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README_anonimo.md -o README_anonimo.md
 
   # Descargo configuración WakaTime.
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.wakatime-project_tasks -o .wakatime-project
@@ -235,49 +240,26 @@ function download_github_files_no_vscode() {
   # Descargo el archivo LICENSE.md.
   curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/LICENSE.md -o LICENSE.md
 
-  # Descargo el archivo README.md y README.
-  if [ "$PROJECT_TYPE" != "drupal" ]; then
-    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README.md -o README.md
-    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README_anonimo.md -o README_anonimo.md
-  fi
-
   # Descargo el archivo CHANGELOG.md.
   curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/CHANGELOG.md -o CHANGELOG.md
 
   # Descargo el archivo TODO.md.
   curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/TODO.md -o TODO.md
-
-  if [ "$PROJECT_TYPE" == "module" ] || [ "$PROJECT_TYPE" == "module_import" ]; then
-    # Descargo las librerías necesarias.
-    mkdir -p src/lib/general
-    curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php > src/lib/general/MarkdownParser.php
-  fi
-
-  if [ "$PROJECT_TYPE" == "module_import" ]; then
-    # Descargo las librerías propias de este tipo de proyecto.
-    curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php > src/lib/general/FileFunctions.php
-    curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php > src/lib/general/ResponseFunctions.php
-    curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php > src/lib/general/ValidateFunctions.php
-    curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php > src/lib/general/StringFunctions.php
-  fi
-
-  # Descargo los archivos de documentación y genero carpeta temporal.
-  if [ "$PROJECT_TYPE" != "drupal" ] && [ "$PROJECT_TYPE" != "other" ] && [ "$PROJECT_TYPE" != "script" ]; then
-    read -r -p "¿Descargamos también los archivos para generar documentación? [y]: " DOWNLOAD_DOC
-    DOWNLOAD_DOC=${DOWNLOAD_DOC:-y}
-    if [ "$DOWNLOAD_DOC" == "y" ]; then
-      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpdox.xml > phpdox.xml
-      mkdir -p .tmp-doc
-      mkdir -p documentation
-    fi
-  fi
 }
 
 # Obtiene el nombre para el proyecto.
 function get_project_name() {
   echo ''
-  read -r -p "Nombre de máquina para el proyecto [$DESTINATION_DIR_BASENAME]: " CUSTOM_MACHINE_NAME
-  CUSTOM_MACHINE_NAME=${CUSTOM_MACHINE_NAME:-$DESTINATION_DIR_BASENAME}
+   case "$PROJECT_TYPE" in
+
+    "other"|"script"|"drupal")
+      read -r -p "Nombre de máquina para el proyecto [$DESTINATION_DIR_BASENAME]: " CUSTOM_MACHINE_NAME
+      CUSTOM_MACHINE_NAME=${CUSTOM_MACHINE_NAME:-$DESTINATION_DIR_BASENAME}
+      ;;
+
+    *)
+      ;;
+  esac
 
   read -r -p "Nombre para el proyecto [$DESTINATION_DIR_BASENAME]: " CUSTOM_NAME
   CUSTOM_NAME=${CUSTOM_NAME:-$DESTINATION_DIR_BASENAME}
@@ -305,23 +287,25 @@ function change_internal_strings() {
 
 # Elimina archivos que no son necesarios.
 function eliminar_archivos_innecesarios() {
-  # Elimino archivos innecesarios.
-  if [ "$PROJECT_TYPE" != "drupal" ]; then
-    unlink README.md || echo "No se ha podido eliminar README.md"
-    unlink .gitignore || echo "No se ha podido eliminar .gitignore"
-    unlink .env || echo "No se ha podido eliminar .env"
-    # Elimino carpeta innecesaria.
-    rm -rf scripts || echo "No se ha podido eliminar ./scripts"
-  fi
-  if [ "$PROJECT_TYPE" == "drupal" ]; then
-    unlink .env || echo "No se ha podido eliminar .env"
-  fi
+  case "$PROJECT_TYPE" in
+
+    "drupal")
+      unlink .env || echo "No se ha podido eliminar .env"
+      ;;
+
+    *)
+      unlink README.md || echo "No se ha podido eliminar README.md"
+      unlink .gitignore || echo "No se ha podido eliminar .gitignore"
+      unlink .env || echo "No se ha podido eliminar .env"
+      ;;
+  esac
+
   unlink CHANGELOG.md || echo "No se ha podido eliminar CHANGELOG.md"
   unlink TODO.md || echo "No se ha podido eliminar TODO.md"
-  unlink .versionrc || echo "No se ha podido eliminar .versionrc"
   unlink phpcs.xml || echo "No se ha podido eliminar phpcs.xml"
   unlink phpdox.xml || echo "No se ha podido eliminar phpdox.xml"
   unlink phpmd.xml || echo "No se ha podido eliminar phpmd.xml"
+  unlink phpstan.neon || echo "No se ha podido eliminar phpstan.neon"
   unlink .wakatime-project || echo "No se ha podido eliminar .wakatime-project"
 
   # Elimino carpetas innecesarias.
@@ -717,9 +701,6 @@ function create_module() {
   # Obtengo el nombre del proyecto.
   get_project_name
 
-  # Obtengo directorio de instalación.
-  install_dir
-
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
     npx degit "${MODULE_TEMPLATE_GIT}" --force
@@ -769,8 +750,6 @@ function create_module() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -786,9 +765,6 @@ function create_module_bas() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
@@ -831,8 +807,6 @@ function create_module_bas() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -848,9 +822,6 @@ function create_module_import() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
@@ -894,8 +865,6 @@ function create_module_import() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -911,9 +880,6 @@ function create_module_rest_api() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
@@ -957,8 +923,6 @@ function create_module_rest_api() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -974,9 +938,6 @@ function create_drupal() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Copio los archivos del módulo.
   if [ "$DEFAULT_ORIGIN" == "git" ]; then
@@ -1019,8 +980,6 @@ function create_drupal() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -1036,9 +995,6 @@ function create_script() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Copio los archivos del módulo.
   if [ -n "$SCRIPT_TEMPLATE_GIT" ]; then
@@ -1081,8 +1037,6 @@ function create_script() {
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
 
-  open_vscode
-
   exit 0
 }
 
@@ -1098,9 +1052,6 @@ function create_other() {
 
   # Obtengo el nombre del proyecto.
   get_project_name
-
-  # Obtengo directorio de instalación.
-  install_dir
 
   # Descargo archivos de configuración.
   get_vscode
@@ -1129,8 +1080,6 @@ function create_other() {
   echo " "
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
   echo " "
-
-  open_vscode
 
   exit 0
 }

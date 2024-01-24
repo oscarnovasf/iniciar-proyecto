@@ -6,6 +6,18 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
+* ## [v2.1.1] - 2024-01-24
+  > Revisión
+
+  * #### Añadido:
+    - Descarga de phpstan.neon al crear proyectos.
+
+  * #### Eliminado:
+    - Ya no se permite cambiar el directorio de instalación, siempre se usará el
+      directorio actual.
+    - Opción de abrir vscode al terminar la instalación.
+
+---
 * ## [v2.1.0] - 2023-08-28
   > Nuevas funcionalidades.
 
