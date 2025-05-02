@@ -33,19 +33,19 @@ BASEDIR=$(dirname "$0")
 ################################################################################
 
 # Parámetros que no necesitan ser modificados.
-DESTINATION_DIR_BASENAME=$(basename "$(pwd)")
 CUSTOM_MACHINE_NAME=$(basename "$(pwd)")
-DESTINATION_DIR_NAME="$(pwd)"
-ACTIVATE_SFTP='n'
+CUSTOM_MACHINE_NAME_AUX=$(basename "$(pwd)")
+CUSTOM_NAME=$(basename "$(pwd)")
+CUSTOM_NAME_AUX=$(basename "$(pwd)")
 PROJECT_TYPE=''
-DOWNLOAD_VSCODE=''
+DOWNLOAD_VSCODE='n'
 
 
 ################################################################################
 # FUNCIONES AUXILIARES.
 ################################################################################
 
-# Simplemente imprime una lína por pantalla.
+# Simplemente imprime una línea por pantalla.
 function linea() {
   echo '--------------------------------------------------------------------------------'
 }
@@ -60,13 +60,14 @@ function load_env() {
     linea
     exit 1
   else
-    source "$(echo ${ENV_FILE})"
+    # shellcheck disable=SC1090
+    source "${ENV_FILE}"
   fi
 }
 
 # Comprueba todas las dependencias necesarias.
 function check_dependencies() {
-  # Degit
+  # degit
   package_name='degit'
   if [[ "$(npm list -g $package_name)" =~ "empty" ]]; then
     clear
@@ -76,7 +77,7 @@ function check_dependencies() {
     exit 2
   fi
 
-  # Rsync.
+  # rsync
   if ! [ -x "$(command -v rsync)" ]; then
     clear
     linea
@@ -85,7 +86,7 @@ function check_dependencies() {
     exit 2
   fi
 
-  # CURL.
+  # CURL
   if ! [ -x "$(command -v curl)" ]; then
     clear
     linea
@@ -113,25 +114,27 @@ function show_usage() {
 
     Lista de parámetros aceptados:
 
+    - current: Inicia un proyecto con los datos actuales, no genera ningún
+      código adicional (sólo añade configuraciones si se solicitan).
+    - drupal: Genera un proyecto completo de Drupal a partir de la plantilla que
+      hemos definido.
+    - lando: Añade los archivos necesarios para la configuración de Lando al
+      proyecto actual.
     - module: Genera un módulo de Drupal a partir de la plantilla
       que nosotros hemos definido.
+    - module_api: Genera un módulo de Drupal a partir de la plantilla
+      definada para ser usada como módulo de consumo de API-REST.
     - module_bas: Genera un módulo de Drupal a partir de la plantilla definida
       para ser usada como módulo básico
     - module_import: Genera un módulo de Drupal a partir de la plantilla
       definida para ser usada como módulo de importación.
-    - module_rest_api: Genera un módulo de Drupal a partir de la plantilla
-      definada para ser usada como módulo de consumo de API-REST.
-    - drupal: Genera un proyecto completo de Drupal a partir de la plantilla que
-      hemos definido.
     - script: Genera los archivos necesarios para generar un proyecto de tipo
       script.
     - other: Genera los archivos necesarios para crear cualquier proyecto.
 
-    Si no se especifica ningún parámetro, el script muestra un menú con las
-    opciones disponibles.
-
   "
   linea
+  exit 0
 }
 
 # Comprueba si se ha pasado el parámetro para mostrar la ayuda.
@@ -142,9 +145,55 @@ function check_help_param() {
   fi
 }
 
+# Obtiene el nombre para el proyecto.
+function get_project_name() {
+  echo ''
+   case "$PROJECT_TYPE" in
+
+    "other"|"script"|"drupal"|"lando")
+      read -r -p "Nombre de máquina para el proyecto [$CUSTOM_MACHINE_NAME_AUX]: " CUSTOM_MACHINE_NAME
+      CUSTOM_MACHINE_NAME=${CUSTOM_MACHINE_NAME:-$CUSTOM_MACHINE_NAME_AUX}
+      ;;
+
+    *)
+      ;;
+  esac
+
+  read -r -p "Nombre para el proyecto [$CUSTOM_NAME_AUX]: " CUSTOM_NAME
+  CUSTOM_NAME=${CUSTOM_NAME:-$CUSTOM_NAME_AUX}
+}
+
+# Elimina archivos que no son necesarios.
+function eliminar_archivos_innecesarios() {
+  case "$PROJECT_TYPE" in
+
+    "drupal")
+      unlink .env || echo "No se ha podido eliminar .env"
+      ;;
+
+    *)
+      unlink README.md || echo "No se ha podido eliminar README.md"
+      unlink .env || echo "No se ha podido eliminar .env"
+      unlink phpcs.xml || echo "No se ha podido eliminar phpcs.xml"
+      unlink phpmd.xml || echo "No se ha podido eliminar phpmd.xml"
+      unlink phpstan.neon || echo "No se ha podido eliminar phpstan.neon"
+      ;;
+  esac
+
+  unlink CHANGELOG.md || echo "No se ha podido eliminar CHANGELOG.md"
+  unlink TODO.md || echo "No se ha podido eliminar TODO.md"
+  unlink .wakatime-project || echo "No se ha podido eliminar .wakatime-project"
+
+  # Elimino carpetas innecesarias.
+  rm -rf .vscode || echo "No se ha podido eliminar ./.vscode"
+  rm -rf .gitlab || echo "No se ha podido eliminar ./.gitlab"
+  rm -rf .github || echo "No se ha podido eliminar ./.github"
+}
+
 # Descarga archivos necesarios desde mi cuenta de github.
-function download_github_files_vscode() {
-  clear
+function download_vscode_files() {
+  DOWNLOAD_VSCODE='y'
+  # clear
   echo " "
   echo -e " ${YELLOW}Descargando archivos adicionales desde GitHub (.vscode)...${RESET}"
   linea
@@ -154,7 +203,7 @@ function download_github_files_vscode() {
   mkdir -p .vscode
   case "$PROJECT_TYPE" in
 
-    "other"|"script")
+    "current"|"other"|"script")
       ;;
 
     *)
@@ -175,11 +224,12 @@ function download_github_files_vscode() {
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/launch.json -o .vscode/launch.json
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/settings.json -o .vscode/settings.json
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/tasks.json -o .vscode/tasks.json
+  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/copilot-instructions.md -o .vscode/copilot-instructions.md
 }
 
 # Descarga archivos necesarios desde mi cuenta de github.
-function download_github_files_no_vscode() {
-  clear
+function download_other_files() {
+  # clear
   echo " "
   echo -e " ${YELLOW}Descargando archivos adicionales desde GitHub (no .vscode)...${RESET}"
   linea
@@ -187,82 +237,55 @@ function download_github_files_no_vscode() {
 
   case "$PROJECT_TYPE" in
 
-    "drupal")
+    "drupal"|"lando")
       # Descargo otros componentes de la documentación.
       curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpcs.xml -o phpcs.xml
       curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpmd.xml -o phpmd.xml
       curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpstan.neon -o phpstan.neon
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/grumphp.yml -o grumphp.yml
       ;;
 
-    "module"|"module_import"|"module_bas"|"module_rest_api")
+    "module_import")
+      # Descargo las librerías necesarias.
+      mkdir -p src/lib/general
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php > src/lib/general/FileFunctions.php
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php > src/lib/general/ResponseFunctions.php
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php > src/lib/general/ValidateFunctions.php
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php > src/lib/general/StringFunctions.php
+      curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php > src/lib/general/MarkdownParser.php
+      ;;
+
+    "module"|"module_api")
       # Descargo las librerías necesarias.
       mkdir -p src/lib/general
       curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/MarkdownParser.php > src/lib/general/MarkdownParser.php
-
-      # Descargo las librerías propias de este tipo de proyecto.
-      if [ "$PROJECT_TYPE" == "module_import" ]; then
-        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/FileFunctions.php > src/lib/general/FileFunctions.php
-        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ResponseFunctions.php > src/lib/general/ResponseFunctions.php
-        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/ValidateFunctions.php > src/lib/general/ValidateFunctions.php
-        curl -s https://raw.githubusercontent.com/oscarnovasf/drupal-aux-libraries/master/src/lib/general/StringFunctions.php > src/lib/general/StringFunctions.php
-      fi
-
-      # Descargo los archivos de documentación y genero carpetas temporal y documentación.
-      read -r -p "¿Descargamos también los archivos para generar documentación? [y]: " DOWNLOAD_DOC
-      DOWNLOAD_DOC=${DOWNLOAD_DOC:-y}
-      if [ "$DOWNLOAD_DOC" == "y" ]; then
-        curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/phpdox.xml > phpdox.xml
-        mkdir -p .tmp-doc
-        mkdir -p documentation
-      fi
       ;;
 
     *)
-      # Descargo archivos de git.
-      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitattributes -o .gitattributes
-      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore
       ;;
   esac
 
-  # Descargo el archivo README.md y README.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README.md -o README.md
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README_anonimo.md -o README_anonimo.md
+  # Descargo archivos de git.
+  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitattributes -o .gitattributes
+  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore
+  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.editorconfig -o .editorconfig
 
   # Descargo configuración WakaTime.
   curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.wakatime-project_tasks -o .wakatime-project
 
-  # Descargo archivos del editor.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.editorconfig -o .editorconfig
+  if [ "$PROJECT_TYPE" != "current" ]; then
+    if [ "$PROJECT_TYPE" != "drupal" ]; then
+      # Descargo el archivo README.md y README.
+      curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README.md -o README.md
+      curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/README_anonimo.md -o README_anonimo.md
+    fi
 
-  # Descargo el archivo CODE_OF_CONDUCT.md.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/CODE_OF_CONDUCT.md -o CODE_OF_CONDUCT.md
-
-  # Descargo el archivo LICENSE.md.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/LICENSE.md -o LICENSE.md
-
-  # Descargo el archivo CHANGELOG.md.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/CHANGELOG.md -o CHANGELOG.md
-
-  # Descargo el archivo TODO.md.
-  curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/TODO.md -o TODO.md
-}
-
-# Obtiene el nombre para el proyecto.
-function get_project_name() {
-  echo ''
-   case "$PROJECT_TYPE" in
-
-    "other"|"script"|"drupal")
-      read -r -p "Nombre de máquina para el proyecto [$DESTINATION_DIR_BASENAME]: " CUSTOM_MACHINE_NAME
-      CUSTOM_MACHINE_NAME=${CUSTOM_MACHINE_NAME:-$DESTINATION_DIR_BASENAME}
-      ;;
-
-    *)
-      ;;
-  esac
-
-  read -r -p "Nombre para el proyecto [$DESTINATION_DIR_BASENAME]: " CUSTOM_NAME
-  CUSTOM_NAME=${CUSTOM_NAME:-$DESTINATION_DIR_BASENAME}
+    # Archivos .md.
+    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/CODE_OF_CONDUCT.md -o CODE_OF_CONDUCT.md
+    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/LICENSE.md -o LICENSE.md
+    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/CHANGELOG.md -o CHANGELOG.md
+    curl -s https://raw.githubusercontent.com/oscarnovasf/md-doc-files/master/files/TODO.md -o TODO.md
+  fi
 }
 
 # Modifica algunas cadenas con los datos del proyecto.
@@ -276,6 +299,8 @@ function change_internal_strings() {
   grep -Rl module_rest_api_calls_name .|xargs sed -i -e "s/module_rest_api_calls_name/$CUSTOM_NAME/g"
   grep -Rl module_rest_api_calls .|xargs sed -i -e "s/module_rest_api_calls/$CUSTOM_MACHINE_NAME/g"
 
+  grep -Rl NOMBRE_PROYECTO\] .|xargs sed -i -e "s/\[NOMBRE_PROYECTO\]/$CUSTOM_MACHINE_NAME/g"
+
   grep -Rl PROYECTO\] .|xargs sed -i -e "s/\[PROYECTO\]/$CUSTOM_MACHINE_NAME/g"
   grep -Rl DESCRIPCION\] .|xargs sed -i -e "s/\[DESCRIPCION\]/$CUSTOM_NAME/g"
 
@@ -285,35 +310,34 @@ function change_internal_strings() {
   fi
 }
 
-# Elimina archivos que no son necesarios.
-function eliminar_archivos_innecesarios() {
-  case "$PROJECT_TYPE" in
+# Elimina cualquier referencia a mi persona en los archivos.
+function eliminar_mi_rastro() {
+  clear
+  read -r -p "¿Deseas eliminar todo rastro del desarrollador [y]?: " ELIMINAR_RASTRO
+  ELIMINAR_RASTRO=${ELIMINAR_RASTRO:-y}
 
-    "drupal")
-      unlink .env || echo "No se ha podido eliminar .env"
-      ;;
+  if [ "$ELIMINAR_RASTRO" == "y" ]; then
+    if [ "$PROJECT_TYPE" != "current" ] && [ "$PROJECT_TYPE" != "drupal" ]; then
+      # Elimino README.md y lo cambio por la versión anónima.
+      unlink README.md || true
+      mv README_anonimo.md README.md
+    fi
 
-    *)
-      unlink README.md || echo "No se ha podido eliminar README.md"
-      unlink .gitignore || echo "No se ha podido eliminar .gitignore"
-      unlink .env || echo "No se ha podido eliminar .env"
-      ;;
-  esac
+    # Elimino ocurrencias con mi correo.
+    grep -Rl "hola@oscarnovas.com" .|xargs sed -i -e "s/hola@oscarnovas.com//g"
 
-  unlink CHANGELOG.md || echo "No se ha podido eliminar CHANGELOG.md"
-  unlink TODO.md || echo "No se ha podido eliminar TODO.md"
-  unlink phpcs.xml || echo "No se ha podido eliminar phpcs.xml"
-  unlink phpdox.xml || echo "No se ha podido eliminar phpdox.xml"
-  unlink phpmd.xml || echo "No se ha podido eliminar phpmd.xml"
-  unlink phpstan.neon || echo "No se ha podido eliminar phpstan.neon"
-  unlink .wakatime-project || echo "No se ha podido eliminar .wakatime-project"
+    # Elimino ocurrencias con mi nombre o url.
+    grep -Rl "Óscar Novás" .|xargs sed -i -e "s/Óscar Novás/Developer/g"
+    grep -Rl "oscarnovas.com" .|xargs sed -i -e "s/oscarnovas.com/example.com/g"
 
-  # Elimino carpetas innecesarias.
-  rm -r .tmp-doc || echo "No se ha podido eliminar ./.tmp-doc"
-  rm -r documentation || echo "No se ha podido eliminar ./documentation"
-  rm -rf .vscode || echo "No se ha podido eliminar ./.vscode"
-  rm -rf .gitlab || echo "No se ha podido eliminar ./.gitlab"
-  rm -rf .github || echo "No se ha podido eliminar ./.github"
+    # Vuelvo a descargar el archivo settings.json.
+    if [ "$DOWNLOAD_VSCODE" == "y" ]; then
+      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/settings.json -o .vscode/settings.json
+    fi
+  else
+    # Elimino README_anonimo.md
+    unlink README_anonimo.md || true
+  fi
 }
 
 # Configura la conexión del módulo SFTP.
@@ -326,53 +350,51 @@ function config_sftp() {
   if [ "$ACTIVATE_SFTP" == "y" ]; then
     # Descargo el archivo sftp.json.
     curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/sftp.json -o .vscode/sftp.json
-    DOMAIN=''
     clear
     echo " "
     echo -e " ${YELLOW}Indica a que servidor te quieres conectar:${RESET}"
     linea
     echo " "
 
-    select server in "SERVIDOR 1" "SERVIDOR 2" "PERSONAL" "CUSTOM" "CUSTOM SSH"
+    DEFAULT_BASE_ROUTE='/var/www/vhost/example.com'
+    select server in "SERVIDOR" "PERSONAL" "CUSTOM" "CUSTOM SSH"
     do
       case $server in
-        "SERVIDOR 1")
-          # Establezco el servidor por defecto.
-          grep -l \"default_server\", .vscode/sftp.json|xargs sed -i -e "s/\"default_server\"/\"server_1\"/g"
+        "SERVIDOR")
+          DEFAULT_BASE_ROUTE="$SERVER_BASE_ROUTE"
 
           # Inicializo los datos de conexión con este servidor.
-          grep -l "\[server_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ip\]/$SERVER_1_IP/g"
-          grep -l "\[server_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_user\]/$SERVER_1_USER/g"
-          grep -l "\[server_password\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_password\]/$SERVER_1_PASS/g"
-          break;
-          ;;
+          grep -l "\[server_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ip\]/$SERVER_IP/g"
+          grep -l "\[server_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_user\]/$SERVER_USER/g"
+          grep -l "\[server_password\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_password\]/$SERVER_PASS/g"
 
-        "SERVIDOR 2")
           # Establezco el servidor por defecto.
-          grep -l \"default_server\", .vscode/sftp.json|xargs sed -i -e "s/\"default_server\"/\"server_2\"/g"
-
-          # Inicializo los datos de conexión con este servidor.
-          grep -l "\[server_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ip\]/$SERVER_2_IP/g"
-          grep -l "\[server_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_user\]/$SERVER_2_USER/g"
-          grep -l "\[server_password\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_password\]/$SERVER_2_PASS/g"
+          if [ "$SERVER_SSH" == "s" ]; then
+            grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_ssh/g"
+          else
+            grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_sftp/g"
+          fi
           break;
           ;;
 
         "PERSONAL")
-          # Establezco el servidor por defecto.
-          grep -l \"default_server\", .vscode/sftp.json|xargs sed -i -e "s/\"default_server\"/\"personal\"/g"
+          DEFAULT_BASE_ROUTE="$PERSONAL_BASE_ROUTE"
 
           # Inicializo los datos de conexión con este servidor.
           grep -l "\[server_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ip\]/$PERSONAL_IP/g"
           grep -l "\[server_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_user\]/$PERSONAL_USER/g"
           grep -l "\[server_password\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_password\]/$PERSONAL_PASS/g"
+
+          # Establezco el servidor por defecto.
+          if [ "$PERSONAL_SSH" == "s" ]; then
+            grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_ssh/g"
+          else
+            grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_sftp/g"
+          fi
           break;
           ;;
 
         "CUSTOM")
-          # Establezco el servidor por defecto.
-          grep -l \"default_server\", .vscode/sftp.json|xargs sed -i -e "s/\"default_server\"/\"custom\"/g"
-
           # Pregunto IP, usuario y contraseña.
           read -r -p "Indica la IP del servidor [xxx.xxx.xxx.xxx]?: " CUSTOM_IP
           CUSTOM_IP=${CUSTOM_IP:-xxx.xxx.xxx.xxx}
@@ -385,27 +407,25 @@ function config_sftp() {
           grep -l "\[server_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ip\]/$CUSTOM_IP/g"
           grep -l "\[server_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_user\]/$CUSTOM_USER/g"
           grep -l "\[server_password\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_password\]/$CUSTOM_PASS/g"
+
+          # Establezco el servidor por defecto.
+          grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_sftp/g"
           break;
           ;;
 
         "CUSTOM SSH")
-          # Establezco el servidor por defecto.
-          grep -l \"default_server\", .vscode/sftp.json|xargs sed -i -e "s/\"default_server\",/\"server_ssh\"/g"
-
           # Pregunto IP, usuario, contraseña y ruta de la clave privada.
           read -r -p "Indica la IP del servidor [xxx.xxx.xxx.xxx]?: " CUSTOM_IP
           CUSTOM_IP=${CUSTOM_IP:-xxx.xxx.xxx.xxx}
           read -r -p "Indica el usuario del servidor [root]?: " CUSTOM_USER
           CUSTOM_USER=${CUSTOM_USER:-root}
-          read -r -p "Indica la ruta a la clave privada [~/.ssh/id_rsa]?: " CUSTOM_KEY_ROUTE
-          CUSTOM_KEY_ROUTE=${CUSTOM_KEY_ROUTE:-~/.ssh/id_rsa}
-          read -r -s -p "Indica la contraseña de la clave privada [NULL]?: " CUSTOM_PASS
 
           # Inicializo los datos de conexión con este servidor.
           grep -l "\[server_ssh_ip\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_ssh_ip\]/$CUSTOM_IP/g"
           grep -l "\[ssh_user\]" .vscode/sftp.json|xargs sed -i -e "s/\[ssh_user\]/$CUSTOM_USER/g"
-          grep -l "\[local_path_to_id_rsa_file\]" .vscode/sftp.json|xargs sed -i -e "s/\[local_path_to_id_rsa_file\]/$CUSTOM_KEY_ROUTE/g"
-          grep -l "\[password_ssh_file\]" .vscode/sftp.json|xargs sed -i -e "s/\[password_ssh_file\]/$CUSTOM_PASS/g"
+
+          # Establezco el servidor por defecto.
+          grep -l "\[server_profile\]" .vscode/sftp.json|xargs sed -i -e "s/\[server_profile\]/server_ssh/g"
           break;
           ;;
 
@@ -416,7 +436,8 @@ function config_sftp() {
     done
 
     # Solicito el nombre del directorio remoto.
-    read -r -p "Directorio remoto (ruta completa) (ej. /var/www/vhost/example.com): " DIR_SFTP
+    read -r -p "Directorio remoto (ruta completa del directorio padre) (ej. ${DEFAULT_BASE_ROUTE}): " DIR_SFTP
+    DIR_SFTP=${DIR_SFTP:-$DEFAULT_BASE_ROUTE}
 
     # Modifico / por \/.
     DIR_SFTP="$(echo $DIR_SFTP | sed -e 's/\//\\\//g')"
@@ -427,23 +448,10 @@ function config_sftp() {
   fi
 }
 
-# Descarga de archivos de .vscode.
-function get_vscode() {
-  # Descargo archivos de configuración.
-  clear
-  read -r -p "¿Descargamos configuraciones .vscode? [y]: " DOWNLOAD_VSCODE
-  DOWNLOAD_VSCODE=${DOWNLOAD_VSCODE:-y}
-  if [ "$DOWNLOAD_VSCODE" == "y" ]; then
-    download_github_files_vscode
-    download_github_files_no_vscode
-    config_sftp
-  else
-    download_github_files_no_vscode
-    if [ -d ".vscode" ]; then
-      rm -rf .vscode
-    fi
-  fi
-}
+
+################################################################################
+# GESTIÓN DE REPOSITORIOS.
+################################################################################
 
 # Generación de repositorio remoto.
 function git_crear_repo() {
@@ -453,6 +461,7 @@ function git_crear_repo() {
   linea
   echo " "
 
+  type="GitHub"
   select type in "GitLab" "GitHub" "Gogs"
   do
     case $type in
@@ -519,7 +528,14 @@ function git_crear_repo() {
 
       "GitHub")
         # https://johnsiu.com/blog/github-api-create-repo/
-        REQ="{\"name\":\"${CUSTOM_MACHINE_NAME}\"}"
+        read -r -p "¿Deseas que el repositorio sea público [n]?: " REPO_GITHUB_PUBLICO
+        REPO_GITHUB_PUBLICO=${REPO_GITHUB_PUBLICO:-n}
+
+        if [ "$REPO_GITHUB_PUBLICO" == "n" ]; then
+          REQ="{\"name\":\"${CUSTOM_MACHINE_NAME}\", \"private\":true}"
+        else
+          REQ="{\"name\":\"${CUSTOM_MACHINE_NAME}\"}"
+        fi
         REPOSITORIO_REMOTO=$(curl -f -X POST \
           -H "Authorization: token ${GITHUB_TOKEN}" -H "Content-Type:application/json" \
           ${GITHUB_API}/user/repos -d \
@@ -598,14 +614,30 @@ function init_git() {
   # Si ya existe la carpeta .git no hago nada.
   if [ ! -d .git ]; then
     clear
-    read -r -p "¿Deseas iniciar git [y]?: " GIT_INIT
-    GIT_INIT=${GIT_INIT:-y}
+    read -r -p "¿Deseas iniciar git [n]?: " GIT_INIT
+    GIT_INIT=${GIT_INIT:-n}
 
     if [ "$GIT_INIT" == "y" ]; then
+      # Compruebo que exista .gitignore.
+      if [ ! -f .gitignore ]; then
+        read -r -p "No se ha encontrado el archivo .gitignore ¿Deseas descargarlo [y]?: " DOWNLOAD_GITIGNORE
+        DOWNLOAD_GITIGNORE=${DOWNLOAD_GITIGNORE:-y}
+
+        if [ "$DOWNLOAD_GITIGNORE" == "y" ]; then
+          curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitattributes -o .gitattributes
+          curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.gitignore_tasks -o .gitignore
+        fi
+      fi
+
       # Me aseguro que la rama principal sea la main.
       git init --initial-branch=main
+
+      # Configuración de git.
       git config core.precomposeunicode false
-      git config branch.main.mergeOptions "--squash"
+      # git config branch.main.mergeOptions "--squash"
+      git config help.autocorrect 50
+      git config status.short true
+      git config commit.gpgSign true
       echo ""
 
       read -r -p "Indica el usuario ($(git config user.name)): " GIT_USER
@@ -631,14 +663,23 @@ function init_git() {
 
       if [ "$GIT_COMMIT" == "y" ]; then
 
-        # Commit inicial (sólo README.md, .gitignore y .vscode).
-        git add README.md .gitignore .vscode
+        if [ "$PROJECT_TYPE" == "current" ]; then
+          # Commit inicial (todos los archivos).
+          git add .
+        else
+          # Commit inicial (sólo README.md, .gitignore y .vscode).
+          git add README.md .gitignore .vscode
+        fi
         git commit -m "init: Inicio del proyecto"
 
         # Creo rama develop y realizo commit completo.
         git switch -c develop
-        git add .
-        git commit -m "init: Inicio desarrollo"
+
+        # Si el tipo de proyecto es "current" no tengo nada que enviar.
+        if [ "$PROJECT_TYPE" != "current" ]; then
+          git add .
+          git commit -m "init: Inicio desarrollo"
+        fi
 
       else
         # Creo la rama develop y me cambio a ella.
@@ -660,33 +701,10 @@ function init_git() {
   fi
 }
 
-# Elimina cualquier referencia a mi persona en los archivos.
-function eliminar_mi_rastro() {
-  clear
-  read -r -p "¿Deseas eliminar todo rastro del desarrollador [y]?: " ELIMINAR_RASTRO
-  ELIMINAR_RASTRO=${ELIMINAR_RASTRO:-y}
 
-  if [ "$ELIMINAR_RASTRO" == "y" ]; then
-    # Elimino README.md y lo cambio por la versión anónima.
-    unlink README.md || true
-    mv README_anonimo.md README.md
-
-    # Elimino ocurrencias con mi correo.
-    grep -Rl "hola@oscarnovas.com" .|xargs sed -i -e "s/hola@oscarnovas.com//g"
-
-    # Elimino ocurrencias con mi nombre o url.
-    grep -Rl "Óscar Novás" .|xargs sed -i -e "s/Óscar Novás/Developer/g"
-    grep -Rl "oscarnovas.com" .|xargs sed -i -e "s/oscarnovas.com/example.com/g"
-
-    # Vuelvo a descargar el archivo settings.yml.
-    if [ "$DOWNLOAD_VSCODE" == "y" ]; then
-      curl -s https://raw.githubusercontent.com/oscarnovasf/VSCode-settings/master/.vscode/settings.json -o .vscode/settings.json
-    fi
-  else
-    # Elimino README_anonimo.md
-    unlink README_anonimo.md || true
-  fi
-}
+################################################################################
+# GENERADORES.
+################################################################################
 
 # Generación de módulo completo.
 function create_module() {
@@ -716,7 +734,7 @@ function create_module() {
   for file in config/*/*module_template*; do mv $file ${file//module_template/$CUSTOM_MACHINE_NAME}; done
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_other_files
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -726,9 +744,6 @@ function create_module() {
 
   # En MAC me está creado archivos terminados en "-e", así que los elimino.
   find . -name '*.*-e' -type f -delete
-
-  # Inicio git.
-  init_git
 
   # Calculo el tiempo de ejecución y muestro mensaje de final del script.
   end=$(date +%s)
@@ -753,12 +768,67 @@ function create_module() {
   exit 0
 }
 
+# Generación de módulo para APIs.
+function create_module_api() {
+  # Control de tiempo de ejecución.
+  start=$(date +%s)
+
+  PROJECT_TYPE='module_api'
+
+  clear
+  show_header
+
+  # Obtengo el nombre del proyecto.
+  get_project_name
+
+  # Copio los archivos del módulo.
+  if [ "$DEFAULT_ORIGIN" == "git" ]; then
+    npx degit "${MODULE_TEMPLATE_API_DIR}" --force
+  else
+    rsync -av --progress --stats "$MODULE_TEMPLATE_API_DIR" . --exclude .git --exclude .vscode
+  fi
+
+  # Elimino archivos y carpetas innecesarias.
+  eliminar_archivos_innecesarios
+
+  # Cambio los nombres de los archivos.
+  for file in *module_rest_api_calls.*; do mv $file ${file//module_rest_api_calls/$CUSTOM_MACHINE_NAME}; done
+  for file in config/*/*module_rest_api_calls*; do mv $file ${file//module_rest_api_calls/$CUSTOM_MACHINE_NAME}; done
+
+  # Descargo archivos de configuración.
+  download_other_files
+
+  # Modifico nombres internos de los ficheros.
+  change_internal_strings
+
+  # Eliminar datos que vinculen el proyecto conmigo.
+  eliminar_mi_rastro
+
+  # En MAC me está creado archivos terminados en "-e", así que los elimino.
+  find . -name '*.*-e' -type f -delete
+
+  # Calculo el tiempo de ejecución y muestro mensaje de final del script.
+  end=$(date +%s)
+  runtime=$((end-start))
+
+  clear
+  echo " "
+  linea
+  echo -e " ${YELLOW}Módulo creado correctamente.${RESET}"
+  linea
+  echo " "
+  echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
+  echo " "
+
+  exit 0
+}
+
 # Generación de módulo básico.
 function create_module_bas() {
   # Control de tiempo de ejecución.
   start=$(date +%s)
 
-  PROJECT_TYPE='module'
+  PROJECT_TYPE='module_bas'
 
   clear
   show_header
@@ -780,7 +850,7 @@ function create_module_bas() {
   for file in *module_template.*; do mv $file ${file//module_template/$CUSTOM_MACHINE_NAME}; done
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_other_files
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -790,9 +860,6 @@ function create_module_bas() {
 
   # En MAC me está creado archivos terminados en "-e", así que los elimino.
   find . -name '*.*-e' -type f -delete
-
-  # Inicio git.
-  init_git
 
   # Calculo el tiempo de ejecución y muestro mensaje de final del script.
   end=$(date +%s)
@@ -838,7 +905,7 @@ function create_module_import() {
   for file in config/*/*module_template_import*; do mv $file ${file//module_template_import/$CUSTOM_MACHINE_NAME}; done
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_other_files
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -848,67 +915,6 @@ function create_module_import() {
 
   # En MAC me está creado archivos terminados en "-e", así que los elimino.
   find . -name '*.*-e' -type f -delete
-
-  # Inicio git.
-  init_git
-
-  # Calculo el tiempo de ejecución y muestro mensaje de final del script.
-  end=$(date +%s)
-  runtime=$((end-start))
-
-  clear
-  echo " "
-  linea
-  echo -e " ${YELLOW}Módulo creado correctamente.${RESET}"
-  linea
-  echo " "
-  echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
-  echo " "
-
-  exit 0
-}
-
-# Generación de módulo para APIs.
-function create_module_rest_api() {
-  # Control de tiempo de ejecución.
-  start=$(date +%s)
-
-  PROJECT_TYPE='module_rest_api'
-
-  clear
-  show_header
-
-  # Obtengo el nombre del proyecto.
-  get_project_name
-
-  # Copio los archivos del módulo.
-  if [ "$DEFAULT_ORIGIN" == "git" ]; then
-    npx degit "${MODULE_TEMPLATE_API_REST_DIR}" --force
-  else
-    rsync -av --progress --stats "$MODULE_TEMPLATE_API_REST_DIR" . --exclude .git --exclude .vscode
-  fi
-
-  # Elimino archivos y carpetas innecesarias.
-  eliminar_archivos_innecesarios
-
-  # Cambio los nombres de los archivos.
-  for file in *module_rest_api_calls.*; do mv $file ${file//module_rest_api_calls/$CUSTOM_MACHINE_NAME}; done
-  for file in config/*/*module_rest_api_calls*; do mv $file ${file//module_rest_api_calls/$CUSTOM_MACHINE_NAME}; done
-
-  # Descargo archivos de configuración.
-  get_vscode
-
-  # Modifico nombres internos de los ficheros.
-  change_internal_strings
-
-  # Eliminar datos que vinculen el proyecto conmigo.
-  eliminar_mi_rastro
-
-  # En MAC me está creado archivos terminados en "-e", así que los elimino.
-  find . -name '*.*-e' -type f -delete
-
-  # Inicio git.
-  init_git
 
   # Calculo el tiempo de ejecución y muestro mensaje de final del script.
   end=$(date +%s)
@@ -950,7 +956,9 @@ function create_drupal() {
   eliminar_archivos_innecesarios
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_vscode_files
+  download_other_files
+  config_sftp
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -975,6 +983,49 @@ function create_drupal() {
   echo " "
   echo " - Ahora debes seguir las instrucciones del archivo README.md para terminar"
   echo "   la instalación."
+  linea
+  echo " "
+  echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
+  echo " "
+
+  exit 0
+}
+
+# Generación de proyecto en blanco.
+function create_current() {
+  # Control de tiempo de ejecución.
+  start=$(date +%s)
+
+  PROJECT_TYPE='current'
+
+  clear
+  show_header
+
+  # Obtengo el nombre del proyecto.
+  get_project_name
+
+  # Descargo archivos de configuración.
+  download_vscode_files
+  download_other_files
+  config_sftp
+
+  # Modifico nombres internos de los ficheros.
+  change_internal_strings
+
+  # En MAC me está creado archivos terminados en "-e", así que los elimino.
+  find . -name '*.*-e' -type f -delete
+
+  # Inicio git.
+  init_git
+
+  # Calculo el tiempo de ejecución y muestro mensaje de final del script.
+  end=$(date +%s)
+  runtime=$((end-start))
+
+  clear
+  echo " "
+  linea
+  echo -e " ${YELLOW}Script creado correctamente.${RESET}"
   linea
   echo " "
   echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
@@ -1010,7 +1061,9 @@ function create_script() {
   for file in *base_script.*; do mv $file ${file//base_script/$CUSTOM_MACHINE_NAME}; done
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_vscode_files
+  download_other_files
+  config_sftp
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -1054,7 +1107,9 @@ function create_other() {
   get_project_name
 
   # Descargo archivos de configuración.
-  get_vscode
+  download_vscode_files
+  download_other_files
+  config_sftp
 
   # Modifico nombres internos de los ficheros.
   change_internal_strings
@@ -1084,80 +1139,58 @@ function create_other() {
   exit 0
 }
 
-# Menú para elegir el tipo de módulo a crear.
-function show_menu_module() {
+# Añade los archivos de configuración de Lando.
+function create_lando() {
+  # Control de tiempo de ejecución.
+  start=$(date +%s)
+
+  PROJECT_TYPE='lando'
+
+  clear
+  show_header
+
+   # Obtengo el nombre del proyecto.
+  get_project_name
+
+  # Copio los archivos.
+  if [ "$DEFAULT_ORIGIN" == "git" ]; then
+    npx degit "${LANDO_TEMPLATE_GIT}" --force
+  else
+    rsync -av --progress --stats "$LANDO_TEMPLATE_DIR/" . --exclude .git --exclude .vscode
+  fi
+
+  # Elimino archivos y carpetas innecesarias.
+  eliminar_archivos_innecesarios
+
+  # Descargo archivos de configuración.
+  download_vscode_files
+  download_other_files
+  config_sftp
+
+  # Modifico nombres internos de los ficheros.
+  change_internal_strings
+
+  # En MAC me está creado archivos terminados en "-e", así que los elimino.
+  find . -name '*.*-e' -type f -delete
+
+  # Inicio git.
+  init_git
+
+  # Calculo el tiempo de ejecución y muestro mensaje de final del script.
+  end=$(date +%s)
+  runtime=$((end-start))
+
   clear
   echo " "
-  echo -e " ${YELLOW}Indica el tipo de módulo a crear...${RESET}"
   linea
-
-  select type in "Módulo completo" "Módulo básico" "Importador" "ApiRest"
-  do
-    case $type in
-      "Módulo completo")
-        create_module
-        break;
-        ;;
-
-      "Módulo básico")
-        create_module_bas
-        break;
-        ;;
-
-      "Importador")
-        create_module_import
-        break;
-        ;;
-
-      "ApiRest")
-        create_module_rest_api
-        break;
-        ;;
-
-      *)
-        echo "Vuelve a intentarlo."
-        ;;
-    esac
-  done
-
-  exit 0
-}
-
-# Menú principal.
-function show_menu() {
-  clear
+  echo -e " ${YELLOW}Se ha añadido Lando a su proyecto.${RESET}"
   echo " "
-  echo -e " ${YELLOW}Indica si vas a crear un módulo, un script, un Drupal......${RESET}"
+  echo " - Recuerda que debes configurar la conexión a la base de datos en el archivo"
+  echo "   settings.php y revisar las credenciales de la base de datos en .lando.yml."
   linea
-
-  select type in Módulo Drupal Script Otro
-  do
-    case $type in
-      "Módulo")
-        show_menu_module
-        break;
-        ;;
-
-      "Drupal")
-        create_drupal
-        break;
-        ;;
-
-      "Script")
-        create_script
-        break;
-        ;;
-
-      "Otro")
-        create_other
-        break;
-        ;;
-
-      *)
-        echo "Vuelve a intentarlo."
-        ;;
-    esac
-  done
+  echo " "
+  echo -e " Tiempo de ejecución: ${YELLOW}${runtime}s${RESET}"
+  echo " "
 
   exit 0
 }
@@ -1183,48 +1216,48 @@ check_dependencies
 
 # Compruebo si se han pasado argumentos al script.
 if [ $# -eq 0 ]; then
-  show_menu
-  exit 0
+  show_usage
 else
   case $1 in
-    "module")
-      create_module
-      exit 0
-      ;;
 
-    "module_bas")
-      create_module_bas
-      exit 0
-      ;;
-
-    "module_rest_api")
-      create_module_rest_api
-      exit 0
-      ;;
-
-    "module_import")
-      create_module_import
-      exit 0
+    "current")
+      create_current
       ;;
 
     "drupal")
       create_drupal
-      exit 0
       ;;
 
-    "script")
-      create_script
-      exit 0
+    "lando")
+      create_lando
+      ;;
+
+    "module")
+      create_module
+      ;;
+
+    "module_api")
+      create_module_api
+      ;;
+
+    "module_bas")
+      create_module_bas
+      ;;
+
+    "module_import")
+      create_module_import
       ;;
 
     "other")
       create_other
-      exit 0
+      ;;
+
+    "script")
+      create_script
       ;;
 
     *)
       show_usage
-      exit 0
       ;;
   esac
 fi

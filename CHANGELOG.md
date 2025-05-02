@@ -6,6 +6,32 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
+* ## [v2.2.0] - 2025-050-02
+  > Revisión
+
+  * #### Añadido:
+    - Configuraciones para git.
+    - Inicio de proyecto sólo con git, con el código actual del directorio.
+    - Opción para crear repositorios públicos y privados en GitHub.
+    - FUNDING.yml y plantillas de GitHub.
+    - Instalación de archivos para trabajar con Lando.
+    - Descarga de configuración para GrumPHP.
+
+  * #### Cambios:
+    - Modificado el valor por defecto a las preguntas de descargar configuración
+      vscode y de iniciar git (ahora es n en lugar de y).
+    - Mejor gestión de la configuración para usar SFTP.
+    - Refactorización de algunas funciones para mejorar legibilidad.
+
+  * #### Errores:
+    - Error en la asignación del nombre del proyecto.
+
+  * #### Eliminado:
+    - Se ha quitado la opción de documentación porque no la uso.
+    - Se ha quitado el menú del script, sólo se puede usar pasando los
+      parámetros correctos.
+
+---
 * ## [v2.1.1] - 2024-01-24
   > Revisión
 

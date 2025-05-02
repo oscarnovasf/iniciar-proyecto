@@ -10,6 +10,8 @@ Script para iniciar un proyecto
 [![wakatime](https://wakatime.com/badge/user/236d57da-61e8-46f2-980b-7af630b18f42/project/09364109-bce0-4a78-a0f4-a9a6c06f56f1.svg)](https://wakatime.com/badge/user/236d57da-61e8-46f2-980b-7af630b18f42/project/09364109-bce0-4a78-a0f4-a9a6c06f56f1)
 [![Donate][donate-badge]][donate-url]
 
+<img src="https://img.shields.io/liberapay/patrons/ONovasDev.svg?logo=liberapay">
+
 ## Requisitos
 - GIT instalado en nuestra máquina.
 - Node.js instalado en nuestra máquina (^18).
@@ -49,8 +51,8 @@ el **commit** inicial (si así se desea).
 
 [mi-web]: https://oscarnovas.com "for developers"
 
-[version]: v2.1.1
-[version-badge]: https://img.shields.io/badge/Versión-2.1.1-blue.svg
+[version]: v2.2.0
+[version-badge]: https://img.shields.io/badge/Versión-2.2.0-blue.svg
 
 [license]: LICENSE.md
 [license-badge]: https://img.shields.io/badge/Licencia-GPLv3+-green.svg "Leer la licencia"
