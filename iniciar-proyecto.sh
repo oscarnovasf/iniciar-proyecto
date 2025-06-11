@@ -634,6 +634,7 @@ function init_git() {
 
       # Configuración de git.
       git config core.precomposeunicode false
+      git config core.autocrlf true
       # git config branch.main.mergeOptions "--squash"
       git config help.autocorrect 50
       git config status.short true

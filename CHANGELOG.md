@@ -6,7 +6,7 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
   > Ver TODO.md
 
 ---
-* ## [v2.2.0] - 2025-050-02
+* ## [v2.2.0] - 2025-05-02
   > Revisión
 
   * #### Añadido:
